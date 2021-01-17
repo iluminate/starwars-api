@@ -4,7 +4,20 @@ configValidationMode: error
 plugins:
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-aws-documentation
+  - serverless-mocha-plugin
 custom:
+  documentation:
+    version: '1'
+    summary: 'Planetas de Star Wars API'
+    description: 'Un API de planetas del mundo de Star Wars con la especificacion OpenApi'
+    resources:
+      -
+        path: "api/planetas/{id}"
+        description: "Para obtener un planeta por su identificador"
+      -
+        path: "api/planetas/"
+        description: "Para crear un planeta y mostrar"
   table: 'planet-${self:provider.stage}'
   dynamodb:
     stages:

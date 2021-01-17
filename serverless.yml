@@ -1,0 +1,54 @@
+service: starwars-api
+frameworkVersion: ^2.19.0
+configValidationMode: error
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+custom:
+  table: 'planet-${self:provider.stage}'
+  dynamodb:
+    stages:
+      - dev
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: us-east-1
+  environment:
+    PLANET_TABLE: ${self:custom.table}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: "*"
+functions:
+  get:
+    handler: resources/api/planet/get.get
+    events:
+      - http:
+          path: api/planetas/{id}
+          method: get
+  create:
+    handler: resources/api/planet/create.create
+    events:
+      - http:
+          path: api/planetas
+          method: post
+resources:
+  Resources:
+    planetTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.table}

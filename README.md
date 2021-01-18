@@ -4,6 +4,13 @@
 ```sh
 npm install
 ```
+
+# Pruebas en local
+```sh
+sls dynamodb install
+sls offline start
+```
+
 # Despliegue en AWS
 ```sh
 serverless deploy

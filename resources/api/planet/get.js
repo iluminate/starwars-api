@@ -1,38 +1,36 @@
 'use strict';
 
-const AWS = require('aws-sdk');
+const https = require('https');
 
-const { PLANET_TABLE, IS_OFFLINE } = process.env
+module.exports.get = async (event, context, callback) => {
 
-const dynamoDb =
-  IS_OFFLINE === 'true'
-    ? new AWS.DynamoDB.DocumentClient({
-        region: 'localhost',
-        endpoint: 'http://localhost:8000',
-      })
-    : new AWS.DynamoDB.DocumentClient()
-
-module.exports.get = (event, context, callback) => {
-  const params = {
-    TableName: PLANET_TABLE,
-    Key: {
-      id: event.pathParameters.id,
-    },
-  };
-  dynamoDb.get(params, (error, result) => {
-    if (error) {
-      console.error(error);
-      callback(null, {
-        statusCode: error.statusCode || 501,
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'El planeta no existe',
-      });
-      return;
-    }
-    const response = {
-      statusCode: 200,
-      body: JSON.stringify(result.Item),
-    };
-    callback(null, response);
-  });
+  let dataString = '';
+    
+    const response = await new Promise((resolve, reject) => {
+      console.log(event.pathParameters.id);
+        const req = https.get("https://swapi.dev/api/planets/" + event.pathParameters.id, function(res) {
+          res.on('data', chunk => {
+            dataString += chunk;
+            console.log(chunk);
+          });
+          res.on('end', () => {
+            resolve({
+                statusCode: 200,
+                body: dataString
+            });
+          });
+        });
+        req.on('error', (e) => {
+          reject({
+              statusCode: 500,
+              body: 'Something went wrong!'
+          });
+        });
+    });
+    console.log(response);
+    callback(null, {
+      statusCode: response.statusCode,
+      headers: { 'Content-Type': 'text/plain' },
+      body: response.body,
+    });
 };
